@@ -474,6 +474,77 @@ comparing M2 to M1 gives a deviance difference of 7.9934 with 1 degree
 of freedom and p = 0.0047, so M2 provides a significantly better fit
 than M1.</p>
 </div>
+<div id="c-check-over-dispersion-in-m2." class="section level3">
+<h3>(c) Check over dispersion in M2.</h3>
+<pre class="r"><code># (c) Check overdispersion in M2
+
+# Pearson chi-square statistic
+X2 &lt;- sum(residuals(M2, type = &quot;pearson&quot;)^2)
+X2</code></pre>
+<pre><code>## [1] 536.5963</code></pre>
+<pre class="r"><code>df &lt;- df.residual(M2)
+df</code></pre>
+<pre><code>## [1] 170</code></pre>
+<pre class="r"><code>phi &lt;- X2 / df
+phi</code></pre>
+<pre><code>## [1] 3.156449</code></pre>
+<pre class="r"><code>1 - pchisq(X2, df)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>deviance(M2) / df.residual(M2)</code></pre>
+<pre><code>## [1] 3.293442</code></pre>
+<pre class="r"><code>M2.q &lt;- glm(Sa ~ W + Wt, family = quasipoisson(link = &quot;log&quot;), data = crab)
+summary(M2.q)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Sa ~ W + Wt, family = quasipoisson(link = &quot;log&quot;), 
+##     data = crab)
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) -1.29168    1.59771  -0.808    0.420
+## W            0.04590    0.08309   0.552    0.581
+## Wt           0.44744    0.28184   1.588    0.114
+## 
+## (Dispersion parameter for quasipoisson family taken to be 3.156449)
+## 
+##     Null deviance: 632.79  on 172  degrees of freedom
+## Residual deviance: 559.89  on 170  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+<pre class="r"><code>coef(M2.q)</code></pre>
+<pre><code>## (Intercept)           W          Wt 
+## -1.29167895  0.04589805  0.44743572</code></pre>
+<pre class="r"><code>confint.default(M2.q)</code></pre>
+<pre><code>##                  2.5 %    97.5 %
+## (Intercept) -4.4231392 1.8397813
+## W           -0.1169576 0.2087537
+## Wt          -0.1049624 0.9998339</code></pre>
+<pre class="r"><code>exp(coef(M2.q))</code></pre>
+<pre><code>## (Intercept)           W          Wt 
+##    0.274809    1.046968    1.564296</code></pre>
+<pre class="r"><code>exp(confint.default(M2.q))</code></pre>
+<pre><code>##                  2.5 %   97.5 %
+## (Intercept) 0.01199651 6.295161
+## W           0.88962293 1.232141
+## Wt          0.90035836 2.717830</code></pre>
+<p>The Pearson chi-square statistic gives phi = 3.156, and the
+deviance-based estimate is 559.89 / 170 = 3.293, both of which are much
+greater than 1. This indicates substantial overdispersion, so the
+Poisson model is not adequate.</p>
+<p>After adjusting for overdispersion using a quasi-Poisson model, the
+fitted mean model remains log(E(Sa | W, Wt)) = -1.2917 + 0.0459W +
+0.4474Wt. Thus, holding weight fixed, a 1-unit increase in width
+multiplies the expected number of satellites by exp(0.0459) = 1.047, and
+holding width fixed, a 1-unit increase in weight multiplies the expected
+number of satellites by exp(0.4474) = 1.564.</p>
+<p>However, after adjustment the standard errors are larger, and the 95%
+confidence intervals for both effects include 1, with width given by
+exp((-0.1170, 0.2088)) = (0.890, 1.232) and weight given by
+exp((-0.1050, 0.9998)) = (0.900, 2.718). Therefore, after accounting for
+overdispersion, neither width nor weight is statistically
+significant.</p>
+</div>
 </div>
 
 

@@ -40,3 +40,32 @@ exp(coef(M2))
 anova(M1, M2, test = "Chisq")
 ```
 The fitted Poisson regression model is log(E(Sa | W, Wt)) = -1.2917 + 0.0459W + 0.4474Wt. Holding weight fixed, a 1-unit increase in width multiplies the expected number of satellites by exp(0.0459) = 1.047, corresponding to a 4.7% increase. Holding width fixed, a 1-unit increase in weight multiplies the expected number of satellites by exp(0.4474) = 1.564, corresponding to a 56.4% increase. The likelihood ratio test comparing M2 to M1 gives a deviance difference of 7.9934 with 1 degree of freedom and p = 0.0047, so M2 provides a significantly better fit than M1.
+
+### (c) Check over dispersion in M2.
+```{r}
+# (c) Check overdispersion in M2
+
+# Pearson chi-square statistic
+X2 <- sum(residuals(M2, type = "pearson")^2)
+X2
+df <- df.residual(M2)
+df
+phi <- X2 / df
+phi
+1 - pchisq(X2, df)
+
+deviance(M2) / df.residual(M2)
+
+M2.q <- glm(Sa ~ W + Wt, family = quasipoisson(link = "log"), data = crab)
+summary(M2.q)
+coef(M2.q)
+confint.default(M2.q)
+
+exp(coef(M2.q))
+exp(confint.default(M2.q))
+```
+The Pearson chi-square statistic gives phi = 3.156, and the deviance-based estimate is 559.89 / 170 = 3.293, both of which are much greater than 1. This indicates substantial overdispersion, so the Poisson model is not adequate. 
+
+After adjusting for overdispersion using a quasi-Poisson model, the fitted mean model remains log(E(Sa | W, Wt)) = -1.2917 + 0.0459W + 0.4474Wt. Thus, holding weight fixed, a 1-unit increase in width multiplies the expected number of satellites by exp(0.0459) = 1.047, and holding width fixed, a 1-unit increase in weight multiplies the expected number of satellites by exp(0.4474) = 1.564. 
+
+However, after adjustment the standard errors are larger, and the 95% confidence intervals for both effects include 1, with width given by exp((-0.1170, 0.2088)) = (0.890, 1.232) and weight given by exp((-0.1050, 0.9998)) = (0.900, 2.718). Therefore, after accounting for overdispersion, neither width nor weight is statistically significant.
