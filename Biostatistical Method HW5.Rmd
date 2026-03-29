@@ -14,3 +14,22 @@ dim(crab)
 summary(crab)
 ```
 ### (a) Fit a Poisson model (M1) with log link with W as the single predictor. Check goodness of fit and interpret the model.
+```{r}
+M1 <- glm(Sa ~ W, family = poisson(link = "log"), data = crab)
+summary(M1)
+coef(M1)
+exp(coef(M1))
+
+deviance(M1)
+df.residual(M1)
+
+1 - pchisq(deviance(M1), df.residual(M1))
+pearson_M1 <- sum(residuals(M1, type = "pearson")^2)
+pearson_M1
+1 - pchisq(pearson_M1, df.residual(M1))
+```
+(a) I fitted the Poisson regression model Sa ~ W with a log link. The fitted model is $\log(\mu_i) = -3.3048 + 0.1640W_i$, where $\mu_i = E(Sa_i \mid W_i)$. Equivalently, $\mu_i = \exp(-3.3048 + 0.1640W_i)$. Since $\exp(0.1640) = 1.178$, for each 1-unit increase in carapace width, the expected number of satellites is multiplied by 1.178, corresponding to about a 17.8% increase in the expected number of satellites. The effect of width is statistically significant. 
+However, the goodness-of-fit is poor because both the residual deviance and Pearson chi-square statistic are much larger than their degrees of freedom,p = 0,indicating lack of fit. Therefore, although width is positively associated with the number of satellites, the Poisson model with width alone does not fit the data well.
+
+
+

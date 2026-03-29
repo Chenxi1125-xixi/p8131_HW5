@@ -390,6 +390,58 @@ head(crab)</code></pre>
 <div id="a-fit-a-poisson-model-m1-with-log-link-with-w-as-the-single-predictor.-check-goodness-of-fit-and-interpret-the-model." class="section level3">
 <h3>(a) Fit a Poisson model (M1) with log link with W as the single
 predictor. Check goodness of fit and interpret the model.</h3>
+<pre class="r"><code>M1 &lt;- glm(Sa ~ W, family = poisson(link = &quot;log&quot;), data = crab)
+summary(M1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Sa ~ W, family = poisson(link = &quot;log&quot;), data = crab)
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -3.30476    0.54224  -6.095  1.1e-09 ***
+## W            0.16405    0.01997   8.216  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 632.79  on 172  degrees of freedom
+## Residual deviance: 567.88  on 171  degrees of freedom
+## AIC: 927.18
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+<pre class="r"><code>coef(M1)</code></pre>
+<pre><code>## (Intercept)           W 
+##  -3.3047572   0.1640451</code></pre>
+<pre class="r"><code>exp(coef(M1))</code></pre>
+<pre><code>## (Intercept)           W 
+##  0.03670812  1.17826744</code></pre>
+<pre class="r"><code>deviance(M1)</code></pre>
+<pre><code>## [1] 567.8786</code></pre>
+<pre class="r"><code>df.residual(M1)</code></pre>
+<pre><code>## [1] 171</code></pre>
+<pre class="r"><code>1 - pchisq(deviance(M1), df.residual(M1))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>pearson_M1 &lt;- sum(residuals(M1, type = &quot;pearson&quot;)^2)
+pearson_M1</code></pre>
+<pre><code>## [1] 544.157</code></pre>
+<pre class="r"><code>1 - pchisq(pearson_M1, df.residual(M1))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<ol style="list-style-type: lower-alpha">
+<li>I fitted the Poisson regression model Sa ~ W with a log link. The
+fitted model is <span class="math inline">\(\log(\mu_i) = -3.3048 +
+0.1640W_i\)</span>, where <span class="math inline">\(\mu_i = E(Sa_i
+\mid W_i)\)</span>. Equivalently, <span class="math inline">\(\mu_i =
+\exp(-3.3048 + 0.1640W_i)\)</span>. Since <span class="math inline">\(\exp(0.1640) = 1.178\)</span>, for each 1-unit
+increase in carapace width, the expected number of satellites is
+multiplied by 1.178, corresponding to about a 17.8% increase in the
+expected number of satellites. The effect of width is statistically
+significant. However, the goodness-of-fit is poor because both the
+residual deviance and Pearson chi-square statistic are much larger than
+their degrees of freedom,p = 0,indicating lack of fit. Therefore,
+although width is positively associated with the number of satellites,
+the Poisson model with width alone does not fit the data well.</li>
+</ol>
 </div>
 </div>
 
