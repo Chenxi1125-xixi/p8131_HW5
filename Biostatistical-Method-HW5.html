@@ -546,6 +546,154 @@ overdispersion, neither width nor weight is statistically
 significant.</p>
 </div>
 </div>
+<div id="problem-2" class="section level1">
+<h1>Problem 2</h1>
+<pre class="r"><code>#Data import
+dat = read.table(&quot;HW5-parasite.txt&quot;, header = TRUE)
+dat = dat[, c(&quot;Intensity&quot;, &quot;Area&quot;, &quot;Year&quot;, &quot;Length&quot;)]
+dat = na.omit(dat)
+
+dat$Area = factor(dat$Area)
+dat$Year = factor(dat$Year)</code></pre>
+<div id="a-poisson-model" class="section level3">
+<h3>(a) Poisson model</h3>
+<pre class="r"><code>fit.pois = glm(Intensity ~ Area + Year + Length,
+               family = poisson(link = &quot;log&quot;), data = dat)
+summary(fit.pois)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Intensity ~ Area + Year + Length, family = poisson(link = &quot;log&quot;), 
+##     data = dat)
+## 
+## Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  2.6431709  0.0542838  48.692  &lt; 2e-16 ***
+## Area2       -0.2119557  0.0491691  -4.311 1.63e-05 ***
+## Area3       -0.1168602  0.0428296  -2.728  0.00636 ** 
+## Area4        1.4049366  0.0356625  39.395  &lt; 2e-16 ***
+## Year2000     0.6702801  0.0279823  23.954  &lt; 2e-16 ***
+## Year2001    -0.2181393  0.0287535  -7.587 3.29e-14 ***
+## Length      -0.0284228  0.0008809 -32.265  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 25797  on 1190  degrees of freedom
+## Residual deviance: 19153  on 1184  degrees of freedom
+## AIC: 21089
+## 
+## Number of Fisher Scoring iterations: 7</code></pre>
+<pre class="r"><code>exp(coef(fit.pois))</code></pre>
+<pre><code>## (Intercept)       Area2       Area3       Area4    Year2000    Year2001 
+##  14.0577088   0.8090006   0.8897096   4.0752685   1.9547848   0.8040134 
+##      Length 
+##   0.9719773</code></pre>
+<p>The fitted model is
+<code>log(E(Intensity | Area, Year, Length)) = 2.6432 - 0.2120 I(Area=2) - 0.1169 I(Area=3) + 1.4049 I(Area=4) + 0.6703 I(Year=2000) - 0.2181 I(Year=2001) - 0.0284 Length</code>,
+with Area 1 and Year 1999 as the reference categories. Controlling for
+year and length, fish in Area 2, Area 3, and Area 4 have expected
+parasite intensity that is 0.809, 0.890, and 4.075 times that of fish in
+Area 1, respectively.</p>
+<p>Controlling for area and length, fish in Year 2000 and Year 2001 have
+expected parasite intensity that is 1.955 and 0.804 times that of fish
+in Year 1999, respectively. Controlling for area and year, each 1-unit
+increase in length is associated with expected parasite intensity being
+multiplied by 0.972.</p>
+</div>
+<div id="problem-b-goodness-of-fit" class="section level3">
+<h3>Problem (b) Goodness of fit</h3>
+<pre class="r"><code>deviance(fit.pois)</code></pre>
+<pre><code>## [1] 19152.8</code></pre>
+<pre class="r"><code>df.residual(fit.pois)</code></pre>
+<pre><code>## [1] 1184</code></pre>
+<pre class="r"><code>1 - pchisq(deviance(fit.pois), df.residual(fit.pois))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>pearson = sum(residuals(fit.pois, type = &quot;pearson&quot;)^2)
+1 - pchisq(pearson, df.residual(fit.pois))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>The goodness-of-fit of the Poisson model is poor. The residual
+deviance is 19152.8 with 1184 degrees of freedom, and the corresponding
+deviance goodness-of-fit test gives p ≈ 0. The Pearson chi-square
+goodness-of-fit test also gives p ≈ 0. Therefore, we reject the null
+hypothesis that the Poisson model fits the data adequately. The model
+shows clear lack of fit, suggesting that the data may exhibit
+overdispersion or excess zeros, so a zero-inflated model is reasonable
+to consider in part (c).</p>
+</div>
+<div id="c-zero-inflated-poisson-model" class="section level3">
+<h3>(c) Zero-inflated Poisson model</h3>
+<pre class="r"><code>library(pscl)</code></pre>
+<pre><code>## Classes and Methods for R originally developed in the
+## Political Science Computational Laboratory
+## Department of Political Science
+## Stanford University (2002-2015),
+## by and under the direction of Simon Jackman.
+## hurdle and zeroinfl functions by Achim Zeileis.</code></pre>
+<pre class="r"><code>fit.zip = zeroinfl(Intensity ~ Area + Year + Length |
+                   Area + Year + Length,
+                   dist = &quot;poisson&quot;, data = dat)
+summary(fit.zip)</code></pre>
+<pre><code>## 
+## Call:
+## zeroinfl(formula = Intensity ~ Area + Year + Length | Area + Year + Length, 
+##     data = dat, dist = &quot;poisson&quot;)
+## 
+## Pearson residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.1278 -0.8265 -0.5829 -0.1821 25.4837 
+## 
+## Count model coefficients (poisson with log link):
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  3.8431714  0.0583793  65.831  &lt; 2e-16 ***
+## Area2        0.2687835  0.0500467   5.371 7.85e-08 ***
+## Area3        0.1463173  0.0439485   3.329 0.000871 ***
+## Area4        0.9448068  0.0368342  25.650  &lt; 2e-16 ***
+## Year2000     0.3919831  0.0282952  13.853  &lt; 2e-16 ***
+## Year2001    -0.0448455  0.0296057  -1.515 0.129833    
+## Length      -0.0368067  0.0009747 -37.762  &lt; 2e-16 ***
+## 
+## Zero-inflation model coefficients (binomial with logit link):
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  0.552585   0.275762   2.004  0.04509 *  
+## Area2        0.718676   0.189552   3.791  0.00015 ***
+## Area3        0.657708   0.167402   3.929 8.53e-05 ***
+## Area4       -1.022868   0.188201  -5.435 5.48e-08 ***
+## Year2000    -0.752119   0.172965  -4.348 1.37e-05 ***
+## Year2001     0.456535   0.143962   3.171  0.00152 ** 
+## Length      -0.009889   0.004629  -2.136  0.03266 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1 
+## 
+## Number of iterations in BFGS optimization: 22 
+## Log-likelihood: -6950 on 14 Df</code></pre>
+<pre class="r"><code>exp(coef(fit.zip))</code></pre>
+<pre><code>## count_(Intercept)       count_Area2       count_Area3       count_Area4 
+##        46.6732618         1.3083718         1.1575634         2.5723163 
+##    count_Year2000    count_Year2001      count_Length  zero_(Intercept) 
+##         1.4799127         0.9561452         0.9638624         1.7377394 
+##        zero_Area2        zero_Area3        zero_Area4     zero_Year2000 
+##         2.0517145         1.9303630         0.3595621         0.4713669 
+##     zero_Year2001       zero_Length 
+##         1.5785947         0.9901598</code></pre>
+<p>In the count part of the zero-inflated Poisson model, controlling for
+year and length, fish in Area 2, Area 3, and Area 4 have expected
+parasite intensity that is 1.308, 1.158, and 2.572 times that of fish in
+Area 1, respectively. Controlling for area and length, fish in Year 2000
+and Year 2001 have expected parasite intensity that is 1.480 and 0.956
+times that of fish in Year 1999, respectively. Controlling for area and
+year, a 1-unit increase in length multiplies the expected parasite
+intensity by 0.964.</p>
+<p>In the zero-inflation part, controlling for year and length, fish in
+Area 2 and Area 3 have odds of belonging to the excess-zero group that
+are 2.052 and 1.930 times those of fish in Area 1, while fish in Area 4
+have odds that are 0.360 times those of fish in Area 1. Controlling for
+area and length, fish in Year 2000 and Year 2001 have odds of belonging
+to the excess-zero group that are 0.471 and 1.579 times those of fish in
+Year 1999, respectively. Controlling for area and year, a 1-unit
+increase in length multiplies these odds by 0.990.</p>
+</div>
+</div>
 
 
 

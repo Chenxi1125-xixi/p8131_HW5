@@ -69,3 +69,48 @@ The Pearson chi-square statistic gives phi = 3.156, and the deviance-based estim
 After adjusting for overdispersion using a quasi-Poisson model, the fitted mean model remains log(E(Sa | W, Wt)) = -1.2917 + 0.0459W + 0.4474Wt. Thus, holding weight fixed, a 1-unit increase in width multiplies the expected number of satellites by exp(0.0459) = 1.047, and holding width fixed, a 1-unit increase in weight multiplies the expected number of satellites by exp(0.4474) = 1.564. 
 
 However, after adjustment the standard errors are larger, and the 95% confidence intervals for both effects include 1, with width given by exp((-0.1170, 0.2088)) = (0.890, 1.232) and weight given by exp((-0.1050, 0.9998)) = (0.900, 2.718). Therefore, after accounting for overdispersion, neither width nor weight is statistically significant.
+
+# Problem 2
+```{r}
+#Data import
+dat = read.table("HW5-parasite.txt", header = TRUE)
+dat = dat[, c("Intensity", "Area", "Year", "Length")]
+dat = na.omit(dat)
+
+dat$Area = factor(dat$Area)
+dat$Year = factor(dat$Year)
+```
+### (a) Poisson model
+```{r}
+fit.pois = glm(Intensity ~ Area + Year + Length,
+               family = poisson(link = "log"), data = dat)
+summary(fit.pois)
+exp(coef(fit.pois))
+```
+The fitted model is `log(E(Intensity | Area, Year, Length)) = 2.6432 - 0.2120 I(Area=2) - 0.1169 I(Area=3) + 1.4049 I(Area=4) + 0.6703 I(Year=2000) - 0.2181 I(Year=2001) - 0.0284 Length`, with Area 1 and Year 1999 as the reference categories. Controlling for year and length, fish in Area 2, Area 3, and Area 4 have expected parasite intensity that is 0.809, 0.890, and 4.075 times that of fish in Area 1, respectively. 
+
+Controlling for area and length, fish in Year 2000 and Year 2001 have expected parasite intensity that is 1.955 and 0.804 times that of fish in Year 1999, respectively. Controlling for area and year, each 1-unit increase in length is associated with expected parasite intensity being multiplied by 0.972.
+
+### Problem (b) Goodness of fit
+```{r}
+deviance(fit.pois)
+df.residual(fit.pois)
+1 - pchisq(deviance(fit.pois), df.residual(fit.pois))
+
+pearson = sum(residuals(fit.pois, type = "pearson")^2)
+1 - pchisq(pearson, df.residual(fit.pois))
+```
+The goodness-of-fit of the Poisson model is poor. The residual deviance is 19152.8 with 1184 degrees of freedom, and the corresponding deviance goodness-of-fit test gives p ≈ 0. The Pearson chi-square goodness-of-fit test also gives p ≈ 0. Therefore, we reject the null hypothesis that the Poisson model fits the data adequately. The model shows clear lack of fit, suggesting that the data may exhibit overdispersion or excess zeros, so a zero-inflated model is reasonable to consider in part (c).
+
+### (c) Zero-inflated Poisson model
+```{r}
+library(pscl)
+fit.zip = zeroinfl(Intensity ~ Area + Year + Length |
+                   Area + Year + Length,
+                   dist = "poisson", data = dat)
+summary(fit.zip)
+exp(coef(fit.zip))
+```
+In the count part of the zero-inflated Poisson model, controlling for year and length, fish in Area 2, Area 3, and Area 4 have expected parasite intensity that is 1.308, 1.158, and 2.572 times that of fish in Area 1, respectively. Controlling for area and length, fish in Year 2000 and Year 2001 have expected parasite intensity that is 1.480 and 0.956 times that of fish in Year 1999, respectively. Controlling for area and year, a 1-unit increase in length multiplies the expected parasite intensity by 0.964.
+
+In the zero-inflation part, controlling for year and length, fish in Area 2 and Area 3 have odds of belonging to the excess-zero group that are 2.052 and 1.930 times those of fish in Area 1, while fish in Area 4 have odds that are 0.360 times those of fish in Area 1. Controlling for area and length, fish in Year 2000 and Year 2001 have odds of belonging to the excess-zero group that are 0.471 and 1.579 times those of fish in Year 1999, respectively. Controlling for area and year, a 1-unit increase in length multiplies these odds by 0.990.
