@@ -443,6 +443,37 @@ although width is positively associated with the number of satellites,
 the Poisson model with width alone does not fit the data well.</li>
 </ol>
 </div>
+<div id="b-poisson-model-with-width-and-weight-and-compared-with-model-in-a" class="section level3">
+<h3>(b) Poisson model with width and weight and compared with model in
+(a)</h3>
+<pre class="r"><code>M2 = glm(Sa ~ W + Wt, family = poisson(link = &quot;log&quot;), data = crab)
+coef(M2)</code></pre>
+<pre><code>## (Intercept)           W          Wt 
+## -1.29167895  0.04589805  0.44743572</code></pre>
+<pre class="r"><code>exp(coef(M2))</code></pre>
+<pre><code>## (Intercept)           W          Wt 
+##    0.274809    1.046968    1.564296</code></pre>
+<pre class="r"><code># Compare M2 and M1
+anova(M1, M2, test = &quot;Chisq&quot;)</code></pre>
+<pre><code>## Analysis of Deviance Table
+## 
+## Model 1: Sa ~ W
+## Model 2: Sa ~ W + Wt
+##   Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)   
+## 1       171     567.88                        
+## 2       170     559.89  1   7.9934 0.004695 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>The fitted Poisson regression model is log(E(Sa | W, Wt)) = -1.2917 +
+0.0459W + 0.4474Wt. Holding weight fixed, a 1-unit increase in width
+multiplies the expected number of satellites by exp(0.0459) = 1.047,
+corresponding to a 4.7% increase. Holding width fixed, a 1-unit increase
+in weight multiplies the expected number of satellites by exp(0.4474) =
+1.564, corresponding to a 56.4% increase. The likelihood ratio test
+comparing M2 to M1 gives a deviance difference of 7.9934 with 1 degree
+of freedom and p = 0.0047, so M2 provides a significantly better fit
+than M1.</p>
+</div>
 </div>
 
 

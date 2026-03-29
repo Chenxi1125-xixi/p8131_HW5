@@ -31,5 +31,12 @@ pearson_M1
 (a) I fitted the Poisson regression model Sa ~ W with a log link. The fitted model is $\log(\mu_i) = -3.3048 + 0.1640W_i$, where $\mu_i = E(Sa_i \mid W_i)$. Equivalently, $\mu_i = \exp(-3.3048 + 0.1640W_i)$. Since $\exp(0.1640) = 1.178$, for each 1-unit increase in carapace width, the expected number of satellites is multiplied by 1.178, corresponding to about a 17.8% increase in the expected number of satellites. The effect of width is statistically significant. 
 However, the goodness-of-fit is poor because both the residual deviance and Pearson chi-square statistic are much larger than their degrees of freedom,p = 0,indicating lack of fit. Therefore, although width is positively associated with the number of satellites, the Poisson model with width alone does not fit the data well.
 
-
-
+### (b) Poisson model with width and weight and compared with model in (a)
+```{r}
+M2 = glm(Sa ~ W + Wt, family = poisson(link = "log"), data = crab)
+coef(M2)
+exp(coef(M2))
+# Compare M2 and M1
+anova(M1, M2, test = "Chisq")
+```
+The fitted Poisson regression model is log(E(Sa | W, Wt)) = -1.2917 + 0.0459W + 0.4474Wt. Holding weight fixed, a 1-unit increase in width multiplies the expected number of satellites by exp(0.0459) = 1.047, corresponding to a 4.7% increase. Holding width fixed, a 1-unit increase in weight multiplies the expected number of satellites by exp(0.4474) = 1.564, corresponding to a 56.4% increase. The likelihood ratio test comparing M2 to M1 gives a deviance difference of 7.9934 with 1 degree of freedom and p = 0.0047, so M2 provides a significantly better fit than M1.
